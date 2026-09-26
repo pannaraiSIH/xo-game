@@ -1,0 +1,1 @@
+ALTER TABLE "user_scores" ADD PRIMARY KEY ("user_id");

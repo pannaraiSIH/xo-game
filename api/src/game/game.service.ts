@@ -1,0 +1,92 @@
+import { Injectable } from '@nestjs/common';
+import { InjectDrizzle } from '@nestjs/drizzle';
+import {
+  Database,
+  GameResult,
+  gameResults,
+  users,
+  UserScores,
+  userScores,
+} from 'src/db';
+import {
+  CreateGameResultDto,
+  UserScoresData,
+  GetUserScoresDto,
+} from './game.dto';
+import { desc, eq } from 'drizzle-orm';
+
+@Injectable()
+export class GameService {
+  constructor(@InjectDrizzle() private db: Database) {}
+
+  async createGameResult(
+    { result }: CreateGameResultDto,
+    userId: number,
+  ): Promise<UserScores> {
+    const score = await this.db.transaction(async (tx) => {
+      const isWin = result === GameResult.WIN;
+
+      const [currentScore] = await tx
+        .select()
+        .from(userScores)
+        .where(eq(userScores.userId, userId))
+        .limit(1);
+
+      const currentStreak = currentScore?.currentStreak ?? 0;
+      const hasBonus = currentStreak === 2 && isWin;
+      const scoreChange = isWin ? (hasBonus ? 2 : 1) : -1;
+
+      await tx
+        .insert(gameResults)
+        .values({ userId, result: result, scoreChange });
+
+      // doesn't specify how negative score should be handled
+      // assumption: minimum total score is 0
+      const totalScore = Math.max(
+        (currentScore?.totalScore ?? 0) + scoreChange,
+        0,
+      );
+      const nextStreak = hasBonus || !isWin ? 0 : currentStreak + 1;
+
+      const [newUserScore] = await tx
+        .insert(userScores)
+        .values({
+          userId,
+          totalScore: totalScore,
+          currentStreak: nextStreak,
+        })
+        .onConflictDoUpdate({
+          target: userScores.userId,
+          set: { totalScore, currentStreak: nextStreak },
+        })
+        .returning();
+
+      return newUserScore;
+    });
+
+    return score;
+  }
+
+  async getUserScores({
+    limit,
+    page,
+  }: GetUserScoresDto): Promise<UserScoresData[]> {
+    const offset = (page - 1) * limit;
+    return this.db
+      .select({
+        user: {
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email,
+        },
+        totalScore: userScores.totalScore,
+        updatedAt: userScores.updatedAt,
+      })
+      .from(userScores)
+      .innerJoin(users, eq(users.id, userScores.userId))
+      .orderBy(desc(userScores.totalScore))
+      .offset(offset)
+      .limit(limit);
+  }
+}

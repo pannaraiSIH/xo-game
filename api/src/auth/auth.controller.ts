@@ -13,7 +13,7 @@ import { AuthService } from './auth.service';
 import { OauthLoginDto, ProfileData } from './auth.dto';
 import { ResponseDto } from 'src/common';
 import { Request, Response } from 'express';
-import { AuthGuard } from './auth.guard';
+import { AuthGuard } from './guards/auth.guard';
 import { plainToInstance } from 'class-transformer';
 
 @Controller('auth')

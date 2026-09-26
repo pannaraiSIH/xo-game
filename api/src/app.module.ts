@@ -9,6 +9,7 @@ import { relations } from './db';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { JwtModule } from '@nestjs/jwt';
+import { GameModule } from './game/game.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { JwtModule } from '@nestjs/jwt';
     }),
     AuthModule,
     UsersModule,
+    GameModule,
   ],
   controllers: [AppController],
   providers: [AppService],

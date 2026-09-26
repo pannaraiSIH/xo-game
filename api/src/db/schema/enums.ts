@@ -11,7 +11,7 @@ export enum Provider {
 
 export enum GameResult {
   DRAW = 'draw',
-  LOSE = 'lost',
+  LOSE = 'lose',
   WIN = 'win',
 }
 

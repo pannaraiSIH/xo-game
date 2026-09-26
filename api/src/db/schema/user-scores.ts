@@ -5,6 +5,7 @@ import { timestamp } from 'drizzle-orm/pg-core/columns/timestamp';
 
 export const userScores = pgTable('user_scores', {
   userId: integer('user_id')
+    .primaryKey()
     .references(() => users.id, { onDelete: 'cascade' })
     .notNull(),
   totalScore: integer('total_score').default(0).notNull(),
@@ -13,5 +14,5 @@ export const userScores = pgTable('user_scores', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-export type ScoreResult = typeof userScores.$inferSelect;
-export type NewScoreResult = typeof userScores.$inferInsert;
+export type UserScores = typeof userScores.$inferSelect;
+export type NewUserScores = typeof userScores.$inferInsert;
