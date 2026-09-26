@@ -2,29 +2,36 @@ import { Injectable } from '@nestjs/common';
 import { GoogleAuthService } from './providers/google-auth.service';
 import { UsersRepository } from 'src/users/users.repository';
 import { Provider } from 'src/db';
-import { SignUpDto } from './auth.dto';
+import { OauthLoginData, OauthLoginDto } from './auth.dto';
 import { ResponseDto } from 'src/common';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
   constructor(
     private googleAuthService: GoogleAuthService,
     private usersRepository: UsersRepository,
+    private jwtService: JwtService,
   ) {}
 
-  async signUp(signUpDto: SignUpDto): Promise<ResponseDto> {
+  async oauthLogin(
+    signUpDto: OauthLoginDto,
+  ): Promise<ResponseDto<OauthLoginData>> {
     const profile = await this.googleAuthService.verifyToken(signUpDto.idToken);
 
     const exists = await this.usersRepository.findUserByEmail(profile.email);
-    if (!exists.length) {
-      const local = profile.email.split('@')[0];
+    let user = exists[0];
 
-      await this.usersRepository.createUser({
+    if (!user) {
+      const local = profile.email.split('@')[0];
+      const created = await this.usersRepository.createUser({
         ...profile,
         firstName: profile.firstName ?? local,
         lastName: profile.lastName ?? local,
         provider: Provider.GOOGLE,
       });
+
+      user = created[0];
     } else {
       await this.usersRepository.createUserProvider({
         userId: exists[0].id,
@@ -33,6 +40,11 @@ export class AuthService {
       });
     }
 
-    return { success: true };
+    const accessToken = await this.jwtService.signAsync({
+      sub: user.id,
+      role: user.role,
+    });
+
+    return { success: true, data: { accessToken } };
   }
 }

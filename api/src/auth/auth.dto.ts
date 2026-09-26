@@ -1,7 +1,11 @@
 import { IsNotEmpty, IsString } from 'class-validator';
 
-export class SignUpDto {
+export class OauthLoginDto {
   @IsString()
   @IsNotEmpty()
   idToken: string;
+}
+
+export interface OauthLoginData {
+  accessToken: string;
 }
