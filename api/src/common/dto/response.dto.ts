@@ -1,4 +1,4 @@
-export class ResponseDto<T = void> {
+export interface ResponseDto<T = void> {
   success: boolean;
   data?: T;
 }

@@ -1,9 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { GoogleAuthService } from './providers/google-auth.service';
 import { UsersRepository } from 'src/users/users.repository';
 import { Provider } from 'src/db';
-import { OauthLoginData, OauthLoginDto } from './auth.dto';
-import { ResponseDto } from 'src/common';
+import { OauthLoginData, OauthLoginDto, ProfileData } from './auth.dto';
 import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
@@ -14,9 +13,7 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async oauthLogin(
-    signUpDto: OauthLoginDto,
-  ): Promise<ResponseDto<OauthLoginData>> {
+  async oauthLogin(signUpDto: OauthLoginDto): Promise<OauthLoginData> {
     const profile = await this.googleAuthService.verifyToken(signUpDto.idToken);
 
     const exists = await this.usersRepository.findUserByEmail(profile.email);
@@ -45,6 +42,14 @@ export class AuthService {
       role: user.role,
     });
 
-    return { success: true, data: { accessToken } };
+    return { accessToken };
+  }
+
+  async getProfile(userId: number): Promise<ProfileData> {
+    const [user] = await this.usersRepository.findUserById(userId);
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+    return user;
   }
 }

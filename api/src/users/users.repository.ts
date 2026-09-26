@@ -20,6 +20,10 @@ export class UsersRepository {
       .limit(1);
   }
 
+  findUserById(userId: number): Promise<User[]> {
+    return this.db.select().from(users).where(eq(users.id, userId)).limit(1);
+  }
+
   createUser(user: CreateUser): Promise<User[]> {
     const role =
       user.email === this.configService.get<string>('ADMIN_EMAIL')
