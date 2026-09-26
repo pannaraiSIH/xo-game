@@ -17,9 +17,6 @@ export const relations = defineRelations(schema, (r) => ({
     users: r.one.users({ from: r.userScores.userId, to: r.users.id }),
   },
   gameResults: {
-    userScores: r.one.userScores({
-      from: r.users.id,
-      to: r.userScores.userId,
-    }),
+    users: r.one.users({ from: r.gameResults.userId, to: r.users.id }),
   },
 }));
