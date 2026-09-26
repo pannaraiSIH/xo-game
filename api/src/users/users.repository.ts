@@ -1,12 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { InjectDrizzle } from '@nestjs/drizzle';
 import { eq, sql } from 'drizzle-orm';
-import { Database, User, userProviders, users } from 'src/db';
+import { Database, User, userProviders, UserRole, users } from 'src/db';
 import { CreateUser, CreateUserProvider } from './users.interface';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UsersRepository {
-  constructor(@InjectDrizzle() private readonly db: Database) {}
+  constructor(
+    @InjectDrizzle() private readonly db: Database,
+    private configService: ConfigService,
+  ) {}
 
   findUserByEmail(email: string): Promise<User[]> {
     return this.db
@@ -17,6 +21,11 @@ export class UsersRepository {
   }
 
   createUser(user: CreateUser): Promise<User[]> {
+    const role =
+      user.email === this.configService.get<string>('ADMIN_EMAIL')
+        ? UserRole.ADMIN
+        : UserRole.USER;
+
     return this.db.transaction(async (tx) => {
       const newUser = await tx
         .insert(users)
@@ -24,6 +33,7 @@ export class UsersRepository {
           firstName: user.firstName,
           lastName: user.lastName,
           email: user.email,
+          role,
         })
         .returning();
       await tx.insert(userProviders).values({
