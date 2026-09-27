@@ -1,8 +1,17 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { useRouter } from "next/navigation";
 import { FcGoogle } from "react-icons/fc";
 
 export default function Login() {
+  const router = useRouter();
+
+  function handleGoogleLogin() {
+    router.push(`${process.env.NEXT_PUBLIC_API_URL!}/auth/google`);
+  }
+
   return (
     <div className="min-h-screen grid place-items-center p-10">
       <Card className="w-full max-w-sm">
@@ -10,7 +19,11 @@ export default function Login() {
           <CardTitle className="text-center">Welcome to XO Arena</CardTitle>
         </CardHeader>
         <CardFooter className="flex-col gap-2">
-          <Button variant="outline" className="w-full">
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={handleGoogleLogin}
+          >
             <FcGoogle className="mr-2 size-5" />
             Continue with Google
           </Button>

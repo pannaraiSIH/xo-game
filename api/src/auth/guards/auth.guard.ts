@@ -6,13 +6,25 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
-import { JwtPayload } from '../auth.interface';
+import { AccessTokenPayload } from '../auth.interface';
+import { Reflector } from '@nestjs/core';
+import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private jwtService: JwtService) {}
+  constructor(
+    private reflector: Reflector,
+    private jwtService: JwtService,
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+
+    if (isPublic) return true;
+
     const request = context.switchToHttp().getRequest<Request>();
     const cookies = request.cookies as Record<string, string | undefined>;
     const token = cookies.access_token;
@@ -22,7 +34,8 @@ export class AuthGuard implements CanActivate {
     }
 
     try {
-      const payload = await this.jwtService.verifyAsync<JwtPayload>(token);
+      const payload =
+        await this.jwtService.verifyAsync<AccessTokenPayload>(token);
       if (!payload.sub) {
         throw new UnauthorizedException();
       }

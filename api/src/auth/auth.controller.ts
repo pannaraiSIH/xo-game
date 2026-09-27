@@ -1,5 +1,4 @@
 import {
-  Body,
   Controller,
   Get,
   HttpCode,
@@ -10,32 +9,39 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { OauthLoginDto, ProfileData } from './auth.dto';
 import { ResponseDto } from 'src/common';
-import { Request, Response } from 'express';
-import { AuthGuard } from './guards/auth.guard';
+import { Response } from 'express';
+import { AuthGuard } from '@nestjs/passport';
+import { Public } from './decorators/public.decorator';
+import { AuthenticatedRequest, GoogleAuthRequest } from './auth.interface';
+import { ProfileData } from './auth.dto';
 import { plainToInstance } from 'class-transformer';
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @HttpCode(HttpStatus.OK)
-  @Post('signup')
-  async signUp(
-    @Body() dto: OauthLoginDto,
-    @Res({ passthrough: true }) res: Response,
-  ): Promise<ResponseDto> {
-    const { accessToken } = await this.authService.oauthLogin(dto);
+  @Public()
+  @Get('google')
+  @UseGuards(AuthGuard('google'))
+  async googleAuth() {}
 
-    res.cookie('access_token', accessToken, {
+  @Public()
+  @Get('google/callback')
+  @UseGuards(AuthGuard('google'))
+  async googleAuthCallback(
+    @Req() req: GoogleAuthRequest,
+    @Res() res: Response,
+  ) {
+    const response = await this.authService.googleLogin(req.user);
+
+    res.cookie('access_token', response.accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 60 * 60 * 1000,
     });
 
-    return { success: true };
+    return res.redirect(`${process.env.CLIENT_URL!}/`);
   }
 
   @HttpCode(HttpStatus.OK)
@@ -50,9 +56,10 @@ export class AuthController {
     return { success: true };
   }
 
-  @UseGuards(AuthGuard)
   @Get('profile')
-  async getProfile(@Req() req: Request): Promise<ResponseDto<ProfileData>> {
+  async getProfile(
+    @Req() req: AuthenticatedRequest,
+  ): Promise<ResponseDto<ProfileData>> {
     const profile = await this.authService.getProfile(req.user!.sub);
     return { success: true, data: plainToInstance(ProfileData, profile) };
   }

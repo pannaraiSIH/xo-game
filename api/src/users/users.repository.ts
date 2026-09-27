@@ -1,7 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectDrizzle } from '@nestjs/drizzle';
-import { eq, sql } from 'drizzle-orm';
-import { Database, User, userProviders, UserRole, users } from 'src/db';
+import { and, eq } from 'drizzle-orm';
+import {
+  Database,
+  Provider,
+  User,
+  userProviders,
+  UserRole,
+  users,
+} from 'src/db';
 import { CreateUser, CreateUserProvider } from './users.interface';
 import { ConfigService } from '@nestjs/config';
 
@@ -12,11 +19,25 @@ export class UsersRepository {
     private configService: ConfigService,
   ) {}
 
-  findUserByEmail(email: string): Promise<User[]> {
+  findUserByProvider(provider: Provider, providerId: string): Promise<User[]> {
     return this.db
-      .select()
+      .select({
+        id: users.id,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        email: users.email,
+        role: users.role,
+        createdAt: users.createdAt,
+        updatedAt: users.updatedAt,
+      })
       .from(users)
-      .where(eq(sql`lower(email)`, email.toLowerCase()))
+      .innerJoin(userProviders, eq(userProviders.userId, users.id))
+      .where(
+        and(
+          eq(userProviders.provider, provider),
+          eq(userProviders.providerUid, providerId),
+        ),
+      )
       .limit(1);
   }
 
