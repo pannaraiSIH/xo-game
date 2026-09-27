@@ -13,10 +13,8 @@ interface AuthState {
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   isAuthenticated: false,
-  isLoading: false,
+  isLoading: true,
   fetchProfile: async () => {
-    set({ isLoading: true });
-
     try {
       const profile = await api.getProfile();
       set({ user: profile, isAuthenticated: true });

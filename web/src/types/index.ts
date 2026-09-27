@@ -9,6 +9,7 @@ export interface UserProfile {
 export interface UserScore {
   totalScore: number;
   currentStreak: number;
+  hasBonus: boolean;
   updatedAt: Date;
 }
 

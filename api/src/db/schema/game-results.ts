@@ -12,6 +12,3 @@ export const gameResults = pgTable('game_results', {
   scoreChange: integer('score_change').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
-
-export type ScoreHistory = typeof gameResults.$inferSelect;
-export type NewScoreHistory = typeof gameResults.$inferInsert;

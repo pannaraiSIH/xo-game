@@ -1,3 +1,4 @@
+import { useAuthStore } from "@/stores/auth-store";
 import { UserProfile, UserScore, UserScores } from "@/types";
 import { GameResult } from "@/types/enums";
 
@@ -32,8 +33,7 @@ async function request<T = void>(
   });
 
   if (response.status === 401) {
-    // clear auth state, redirect
-    throw new ApiError("Unauthorized", 401);
+    useAuthStore.getState().logout();
   }
 
   if (!response.ok) {
@@ -71,6 +71,10 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ result }),
     });
+  },
+
+  getCurrentScore() {
+    return request<UserScore>("/game/score", { method: "GET" });
   },
 
   getUserScores(limit: number, page: number) {

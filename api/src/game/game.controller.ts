@@ -3,7 +3,7 @@ import {
   CreateGameResultDto,
   UserScoresData,
   GetUserScoresDto,
-  UserScoreData,
+  CurrentUserScoreData,
 } from './game.dto';
 import { GameService } from './game.service';
 import { ResponseDto } from 'src/common';
@@ -20,13 +20,30 @@ export class GameController {
   async createGameResult(
     @Body() dto: CreateGameResultDto,
     @Req() req: AuthenticatedRequest,
-  ): Promise<ResponseDto<UserScoreData>> {
-    const userScore = await this.gameService.createGameResult(
+  ): Promise<ResponseDto<CurrentUserScoreData>> {
+    const currentScore = await this.gameService.createGameResult(
       dto,
       req.user!.sub,
     );
 
-    return { success: true, data: plainToInstance(UserScoreData, userScore) };
+    return {
+      success: true,
+      data: plainToInstance(CurrentUserScoreData, currentScore),
+    };
+  }
+
+  @Get('score')
+  async getCurrentUserScore(
+    @Req() req: AuthenticatedRequest,
+  ): Promise<ResponseDto<CurrentUserScoreData>> {
+    const currentScore = await this.gameService.getCurrentUserScore(
+      req.user!.sub,
+    );
+
+    return {
+      success: true,
+      data: plainToInstance(CurrentUserScoreData, currentScore),
+    };
   }
 
   @Get('user-scores')

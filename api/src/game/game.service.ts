@@ -1,17 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectDrizzle } from '@nestjs/drizzle';
-import {
-  Database,
-  GameResult,
-  gameResults,
-  users,
-  UserScores,
-  userScores,
-} from 'src/db';
+import { Database, GameResult, gameResults, users, userScores } from 'src/db';
 import {
   CreateGameResultDto,
   UserScoresData,
   GetUserScoresDto,
+  CurrentUserScoreData,
 } from './game.dto';
 import { desc, eq } from 'drizzle-orm';
 
@@ -22,7 +16,7 @@ export class GameService {
   async createGameResult(
     { result }: CreateGameResultDto,
     userId: number,
-  ): Promise<UserScores> {
+  ): Promise<CurrentUserScoreData> {
     const score = await this.db.transaction(async (tx) => {
       const isWin = result === GameResult.WIN;
 
@@ -61,10 +55,21 @@ export class GameService {
         })
         .returning();
 
-      return newUserScore;
+      return { ...newUserScore, hasBonus };
     });
 
     return score;
+  }
+
+  async getCurrentUserScore(userId: number): Promise<CurrentUserScoreData> {
+    const [currentScore] = await this.db
+      .select()
+      .from(userScores)
+      .where(eq(userScores.userId, userId))
+      .limit(1);
+    if (!currentScore) throw new NotFoundException();
+
+    return { ...currentScore, hasBonus: false };
   }
 
   async getUserScores({

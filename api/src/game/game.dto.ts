@@ -17,12 +17,15 @@ export class CreateGameResultDto {
 }
 
 @Exclude()
-export class UserScoreData {
+export class CurrentUserScoreData {
   @Expose()
   totalScore: number;
 
   @Expose()
   currentStreak: number;
+
+  @Expose()
+  hasBonus: boolean;
 
   @Expose()
   updatedAt: Date;

@@ -14,5 +14,5 @@ export const userScores = pgTable('user_scores', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-export type UserScores = typeof userScores.$inferSelect;
-export type NewUserScores = typeof userScores.$inferInsert;
+export type UserScore = typeof userScores.$inferSelect;
+export type NewUserScore = typeof userScores.$inferInsert;
