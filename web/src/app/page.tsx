@@ -4,11 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/stores/auth-store";
-import { GameResult } from "@/types/enums";
+import { GameResult, UserRole } from "@/types/enums";
 import { cn } from "cn";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { FaFire } from "react-icons/fa";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const WINNING_MOVES = [
   [0, 1, 2],
@@ -154,6 +155,15 @@ export default function Home() {
     hasSubmittedResult.current = false;
   }
 
+  function handleViewScores() {
+    router.push("/scores");
+  }
+
+  async function signOut() {
+    await api.signOut();
+    router.push("/login");
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-dvh grid place-content-center">
@@ -168,9 +178,28 @@ export default function Home() {
 
   return (
     <div className="mx-auto max-w-md pt-10 pb-10">
+      <div className="flex justify-between mb-6">
+        {user.role === UserRole.ADMIN && (
+          <div className="flex gap-4">
+            <Button variant="outline" onClick={handleViewScores}>
+              Scores
+            </Button>
+          </div>
+        )}
+
+        <div className="ml-auto flex gap-4">
+          <Avatar>
+            <AvatarFallback>{user.email[0].toUpperCase()}</AvatarFallback>
+          </Avatar>
+          <Button variant="outline" onClick={signOut}>
+            Sign out
+          </Button>
+        </div>
+      </div>
+
       <div className="flex justify-end">
-        <Button variant="outline" onClick={() => restartGame()}>
-          Restart Game
+        <Button variant="outline" onClick={restartGame}>
+          {winningMoves.length || isDraw ? "Play Again" : "Restart Game"}
         </Button>
       </div>
 
@@ -183,11 +212,27 @@ export default function Home() {
               cell || !playerTurn
                 ? "cursor-not-allowed"
                 : "cursor-pointer hover:border-2 hover:border-orange-500",
-              winningMoves.includes(idx) && "border-green-500",
+              botWinningMoves?.includes(idx) && "border-[#C2410C] bg-[#FDEEE6]",
+              playerWinningMoves?.includes(idx) &&
+                "border-[#0A66D6] bg-[#E8F1FD]",
             )}
             onClick={() => handlePlayerMove(idx)}
           >
-            {cell}
+            {cell === Mark.PLAYER ? (
+              <Image
+                src="/images/mark-x.svg"
+                alt="Mark X"
+                width={120}
+                height={120}
+              />
+            ) : cell === Mark.BOT ? (
+              <Image
+                src="/images/mark-o.svg"
+                alt="Mark O"
+                width={120}
+                height={120}
+              />
+            ) : null}
           </button>
         ))}
       </div>
@@ -200,13 +245,14 @@ export default function Home() {
           <div className="flex items-center justify-center gap-2">
             <div className="flex">
               {Array.from({ length: 3 }).map((_, idx) => (
-                <FaFire
+                <Image
                   key={idx}
+                  src="/images/flame.svg"
+                  alt="Mark X"
+                  width={20}
+                  height={20}
                   className={cn(
-                    "size-5",
-                    idx < playerStreak
-                      ? "text-orange-500"
-                      : "text-muted-foreground/30",
+                    idx < playerStreak ? "opacity-100" : "opacity-20",
                   )}
                 />
               ))}
@@ -221,7 +267,7 @@ export default function Home() {
         </div>
 
         <div>
-          <p className={`${!playerTurn ? "text-blue-500" : ""}`}>Bot (O)</p>
+          <p className={`${!playerTurn ? "text-[#C2410C]" : ""}`}>Bot (O)</p>
         </div>
       </div>
     </div>
