@@ -25,7 +25,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
   logout: async () => {
-    await api.logout();
+    await api.signOut();
     set({ user: null, isAuthenticated: false });
   },
 }));
