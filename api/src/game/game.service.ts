@@ -7,7 +7,8 @@ import {
   GetUserScoresDto,
   CurrentUserScoreData,
 } from './game.dto';
-import { desc, eq } from 'drizzle-orm';
+import { desc, eq, sql } from 'drizzle-orm';
+import { Pagination } from 'src/common';
 
 @Injectable()
 export class GameService {
@@ -72,26 +73,44 @@ export class GameService {
     return { ...currentScore, hasBonus: false };
   }
 
-  async getUserScores({
-    limit,
-    page,
-  }: GetUserScoresDto): Promise<UserScoresData[]> {
+  async getUserScores({ limit, page }: GetUserScoresDto): Promise<{
+    scores: UserScoresData[];
+    pagination: Pagination;
+  }> {
     const offset = (page - 1) * limit;
-    return this.db
-      .select({
-        user: {
-          id: users.id,
-          firstName: users.firstName,
-          lastName: users.lastName,
-          email: users.email,
-        },
-        totalScore: userScores.totalScore,
-        updatedAt: userScores.updatedAt,
-      })
-      .from(userScores)
-      .innerJoin(users, eq(users.id, userScores.userId))
-      .orderBy(desc(userScores.totalScore))
-      .offset(offset)
-      .limit(limit);
+
+    const [scores, [countResult]] = await Promise.all([
+      this.db
+        .select({
+          user: {
+            id: users.id,
+            firstName: users.firstName,
+            lastName: users.lastName,
+            email: users.email,
+          },
+          currentStreak: userScores.currentStreak,
+          totalScore: userScores.totalScore,
+          updatedAt: userScores.updatedAt,
+        })
+        .from(userScores)
+        .innerJoin(users, eq(users.id, userScores.userId))
+        .orderBy(desc(userScores.totalScore))
+        .offset(offset)
+        .limit(limit),
+
+      this.db.select({ count: sql<number>`count(*)` }).from(userScores),
+    ]);
+
+    const total = Number(countResult.count);
+
+    return {
+      scores,
+      pagination: {
+        page,
+        limit,
+        total: total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 }

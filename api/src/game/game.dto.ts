@@ -62,6 +62,9 @@ export class UserScoresData {
   user: User;
 
   @Expose()
+  currentStreak: number;
+
+  @Expose()
   totalScore: number;
 
   @Expose()

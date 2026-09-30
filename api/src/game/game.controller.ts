@@ -53,6 +53,10 @@ export class GameController {
   ): Promise<ResponseDto<UserScoresData[]>> {
     const userScores = await this.gameService.getUserScores(dto);
 
-    return { success: true, data: plainToInstance(UserScoresData, userScores) };
+    return {
+      success: true,
+      data: plainToInstance(UserScoresData, userScores.scores),
+      pagination: userScores.pagination,
+    };
   }
 }

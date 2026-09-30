@@ -33,17 +33,23 @@ export class AuthController {
     @Req() req: GoogleAuthRequest,
     @Res() res: Response,
   ) {
-    const response = await this.authService.googleLogin(req.user);
+    try {
+      const response = await this.authService.googleLogin(req.user);
 
-    res.cookie('access_token', response.accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-    });
+      res.cookie('access_token', response.accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+      });
 
-    return res.redirect(`${process.env.CLIENT_URL!}/`);
+      return res.redirect(`${process.env.CLIENT_URL!}/`);
+    } catch (error) {
+      console.error('Google login failed:', error);
+      return res.redirect(`${process.env.CLIENT_URL!}/login?error=auth_failed`);
+    }
   }
 
+  @Public()
   @HttpCode(HttpStatus.OK)
   @Post('logout')
   logout(@Res({ passthrough: true }) res: Response): ResponseDto {

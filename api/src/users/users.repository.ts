@@ -30,8 +30,8 @@ export class UsersRepository {
         createdAt: users.createdAt,
         updatedAt: users.updatedAt,
       })
-      .from(users)
-      .innerJoin(userProviders, eq(userProviders.userId, users.id))
+      .from(userProviders)
+      .innerJoin(users, eq(users.id, userProviders.userId))
       .where(
         and(
           eq(userProviders.provider, provider),
