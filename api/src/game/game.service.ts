@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectDrizzle } from '@nestjs/drizzle';
 import { Database, GameResult, gameResults, users, userScores } from 'src/db';
 import {
@@ -68,7 +68,15 @@ export class GameService {
       .from(userScores)
       .where(eq(userScores.userId, userId))
       .limit(1);
-    if (!currentScore) throw new NotFoundException();
+
+    if (!currentScore) {
+      return {
+        totalScore: 0,
+        currentStreak: 0,
+        hasBonus: false,
+        updatedAt: null,
+      };
+    }
 
     return { ...currentScore, hasBonus: false };
   }

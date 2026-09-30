@@ -13,7 +13,7 @@ export interface UserScore {
   totalScore: number;
   currentStreak: number;
   hasBonus: boolean;
-  updatedAt: Date;
+  updatedAt: Date | null;
 }
 
 interface User {

@@ -28,7 +28,7 @@ export class CurrentUserScoreData {
   hasBonus: boolean;
 
   @Expose()
-  updatedAt: Date;
+  updatedAt: Date | null;
 }
 
 export class GetUserScoresDto {

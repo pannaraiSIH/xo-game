@@ -77,34 +77,45 @@ export default function Scores() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[100px]">#</TableHead>
+              <TableHead className="w-25">#</TableHead>
               <TableHead className="">Player</TableHead>
               <TableHead>Score</TableHead>
               <TableHead>Streak</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {scores.map((i) => (
-              <TableRow key={i.user.id}>
-                <TableCell className="font-medium">1</TableCell>
-                <TableCell>{i.user.firstName}</TableCell>
-                <TableCell>{i.totalScore}</TableCell>
-                <TableCell className="flex">
-                  {Array.from({ length: 3 }).map((_, idx) => (
-                    <Image
-                      key={idx}
-                      src="/images/flame.svg"
-                      alt="Mark X"
-                      width={20}
-                      height={20}
-                      className={cn(
-                        idx < i.currentStreak ? "opacity-100" : "opacity-20",
-                      )}
-                    />
-                  ))}
+            {scores.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={4}
+                  className="h-24 text-center text-muted-foreground"
+                >
+                  No scores yet.
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              scores.map((i) => (
+                <TableRow key={i.user.id}>
+                  <TableCell className="font-medium">1</TableCell>
+                  <TableCell>{i.user.firstName}</TableCell>
+                  <TableCell>{i.totalScore}</TableCell>
+                  <TableCell className="flex">
+                    {Array.from({ length: 3 }).map((_, idx) => (
+                      <Image
+                        key={idx}
+                        src="/images/flame.svg"
+                        alt="Mark X"
+                        width={20}
+                        height={20}
+                        className={cn(
+                          idx < i.currentStreak ? "opacity-100" : "opacity-20",
+                        )}
+                      />
+                    ))}
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>
@@ -126,25 +137,28 @@ export default function Scores() {
               />
             </PaginationItem>
 
-            {Array.from({ length: pagination.totalPages }, (_, idx) => {
-              const pageNumber = idx + 1;
+            {Array.from(
+              { length: Math.max(pagination.totalPages, 1) },
+              (_, idx) => {
+                const pageNumber = idx + 1;
 
-              return (
-                <PaginationItem key={pageNumber}>
-                  <PaginationLink
-                    isActive={pagination.page === pageNumber}
-                    onClick={() =>
-                      setPagination((prev) => ({
-                        ...prev,
-                        page: pageNumber,
-                      }))
-                    }
-                  >
-                    {pageNumber}
-                  </PaginationLink>
-                </PaginationItem>
-              );
-            })}
+                return (
+                  <PaginationItem key={pageNumber}>
+                    <PaginationLink
+                      isActive={pagination.page === pageNumber}
+                      onClick={() =>
+                        setPagination((prev) => ({
+                          ...prev,
+                          page: pageNumber,
+                        }))
+                      }
+                    >
+                      {pageNumber}
+                    </PaginationLink>
+                  </PaginationItem>
+                );
+              },
+            )}
 
             <PaginationItem>
               <PaginationNext
