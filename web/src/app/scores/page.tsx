@@ -23,9 +23,12 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { useAuthStore } from "@/stores/auth-store";
+import { UserRole } from "@/types/enums";
 
 export default function Scores() {
   const router = useRouter();
+  const { isLoading, user } = useAuthStore();
 
   const [scores, setScores] = useState<UserScores[]>([]);
   const [pagination, setPagination] = useState({
@@ -34,6 +37,14 @@ export default function Scores() {
     total: 0,
     totalPages: 0,
   });
+
+  useEffect(() => {
+    if (isLoading) return;
+
+    if (user?.role !== UserRole.ADMIN) {
+      router.replace("/");
+    }
+  }, [isLoading, user, router]);
 
   useEffect(() => {
     async function fetchUserScores() {

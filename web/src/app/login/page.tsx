@@ -22,7 +22,7 @@ export default function Login() {
     <div className="min-h-screen grid place-items-center p-10 bg-[#F7F7F8]">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle className="text-center">Tic-Tac-Toe</CardTitle>
+          <CardTitle className="text-center">XO</CardTitle>
           <CardDescription className="text-center">
             Sign in to play against the bot and save your score.
           </CardDescription>
